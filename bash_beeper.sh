@@ -68,22 +68,12 @@ PROMPT_COMMAND="get_git_branch ; timer_stop"
     else
       echo -n "\[\033[01;31m\]\u@"
     fi
-    if [ "${FVX-}" != "No FVX" -a "${FVX-}" != "" ] ; then
-      if [ "$OWNER" == "$USER" ] ; then
-        echo -n "\[\033[01;32m\]"
-      else
-        echo -n "\[\033[01;31m\]"
-      fi
-      echo -n "[$FVX]"
-      echo -n "\[\033[00m\]"
-    else
-      hostname="${HOSTNAME}"
-      if [ "${#hostname}" -gt 10 ] ; then
-        hostname="${hostname:0:9}…"
-      fi
-      echo -n "${hostname}"
-      echo -n "\[\033[00m\]"
+    hostname="${HOSTNAME}"
+    if [ "${#hostname}" -gt 10 ] ; then
+      hostname="${hostname:0:9}…"
     fi
+    echo -n "${hostname}"
+    echo -n "\[\033[00m\]"
     if [ ! -z "${GIT_BRANCH}" ] ; then
         echo -n "\[\033[01;36m\]"
         echo -n "[${GIT_BRANCH}]"
