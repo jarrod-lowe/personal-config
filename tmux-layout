@@ -1,0 +1,212 @@
+#!/usr/bin/python
+import subprocess
+import unittest2
+
+
+def parse_window_line(line):
+    """Get the information we need out of the line
+    N: NAME (x panes) [WWWxHHH] [layout LAYOUTSTR] @N (active)
+    """
+    toks = line.split()
+    num_panes = toks[2].lstrip('(')
+    size = toks[4].lstrip('[').rstrip(']')
+    (width, height) = size.split('x')
+    return (int(num_panes), int(width), int(height))
+
+
+def get_window_data():
+    """Get the information about the current window"""
+    for line in subprocess.Popen(
+            ['tmux', 'list-windows'],
+            stdout=subprocess.PIPE).stdout:
+        line = line.strip()
+        if line.endswith(' (active)'):
+            return parse_window_line(line)
+    raise Exception("No active window found; are you running under tmux?")
+
+
+class Pane(object):
+    """A Pane representation"""
+    # Has no data or methods on it, is used purely to mark the space
+    pass
+
+
+class Column(object):
+    """A column on the display"""
+    def __init__(self, width, height, start):
+        self.width = width
+        self.height = height
+        self.start = start
+        self.panes = []
+
+    def add_pane(self, pane):
+        self.panes.append(pane)
+
+    def __str__(self):
+        if len(self.panes) < 2:
+            panestr = ''
+        else:
+            panestr = self.pane_definition()
+
+        return '%dx%d,%d,%d%s' % (
+            self.width,
+            self.height,
+            self.start,
+            0,
+            panestr)
+
+    def pane_definition(self):
+        """Work out the part of the layout string that is for the horizontally
+        stacked panes. Only used if there is more than one pane"""
+        remaining_height = self.height
+        height_per_pane = (self.height + 1) / len(self.panes)
+        start = 0
+        pane_info = []
+        for n in range(len(self.panes)):
+            pane_info.append([height_per_pane, start])
+            remaining_height -= (height_per_pane + 1)
+            start += (height_per_pane + 1)
+        remaining_height += 1  # Don't need a seprator line for the last pane
+        pane_info[-1][0] += remaining_height
+
+        strs = []
+        for pinfo in pane_info:
+            strs.append('%dx%d,%d,%d' % (
+                self.width,
+                pinfo[0],
+                0,
+                pinfo[1]))
+
+        return '[' + ','.join(strs) + ']'
+
+
+class Screen(object):
+    """The entire display"""
+    MIN_WIDTH = 82  # 80 column VIM, plus two chars for info
+
+    def __init__(self, num_panes, width, height):
+        self.num_panes = num_panes
+        self.width = width
+        self.height = height
+        num_cols = self.choose_num_cols()
+        self.cols = self.create_cols(num_cols)
+        self.assign_panes()
+
+    def assign_panes(self):
+        """Create the panes, and assign them to the appropriate column"""
+        # Firstly, every column has at least one pane
+        panes_remaining = self.num_panes
+        for col in self.cols:
+            col.add_pane(Pane())
+            panes_remaining -= 1
+
+        if len(self.cols) == 1:
+            # Special case - add all panes to the first (and only) column
+            # Normally, the first column has only one pane, no matter how many
+            # there are in total
+            for n in range(panes_remaining):
+                self.cols[0].add_pane(Pane())
+
+        else:
+            # Sllocate out all the remaining panes
+            # Start from the right, but never add to the first
+            current_col = len(self.cols) - 1  # The last column
+            for n in range(panes_remaining):
+                self.cols[current_col].add_pane(Pane())
+                current_col -= 1  # move one to the left
+                if current_col == 0:
+                    # Skip the first column, and go back to the last
+                    current_col = len(self.cols) - 1
+
+    def choose_num_cols(self):
+        """Work out how many columns of size MIN_WIDTH will fit into width,
+        up to num_panes"""
+        # The +1's account for the vertical lines
+        num = (self.width+1) / (self.MIN_WIDTH+1)
+        if num == 0:
+            return 1
+        return min(num, self.num_panes)
+
+    def create_cols(self, num):
+        """Create the column objects"""
+        width = self.width
+        sizes = []
+        for n in range(num):
+            sizes.insert(0, self.MIN_WIDTH)
+            width -= (self.MIN_WIDTH + 1)
+        sizes[0] += 1  # Don't need a vertical line for one column
+        sizes[0] += width  # Add all the extra space to the first column
+
+        cols = []
+        start = 0
+        for size in sizes:
+            cols.append(Column(width=size, height=self.height, start=start))
+            start += size + 1
+
+        return cols
+
+    @classmethod
+    def checksum(cls, layout):
+        """The tmux layout checksum"""
+        csum = 0
+        for c in layout:
+            csum = (csum >> 1) + ((csum & 1) << 15)
+            csum += ord(c)
+        return '%04x' % csum
+
+    def layout(self):
+        return '%dx%d,0,0{%s}' % (
+            self.width,
+            self.height,
+            ','.join([str(col) for col in self.cols]))
+
+    def __str__(self):
+        layout = self.layout()
+        checksum = self.checksum(layout)
+        return '%s,%s' % (checksum, layout)
+
+
+def set_layout(layout):
+    subprocess.Popen(['tmux', 'select-layout', layout])
+
+
+def main():
+    screen = Screen(*get_window_data())
+    set_layout(str(screen))
+
+
+class TestCase(unittest2.TestCase):
+    def test_choose_num_cols(self):
+        S = Screen
+        # Cases where we have plenty of room
+        self.assertEquals(S(1, 100, None).choose_num_cols(), 1)
+        self.assertEquals(S(2, 100, None).choose_num_cols(), 1)
+
+        # To small even for one full column
+        self.assertEquals(S(1, 10, None).choose_num_cols(), 1)
+
+        # Exact fit
+        self.assertEquals(S(1, 82, None).choose_num_cols(), 1)
+        self.assertEquals(S(2, 82*2+1, None).choose_num_cols(), 2)
+        self.assertEquals(S(3, 82*3+2, None).choose_num_cols(), 3)
+
+        # Overfill
+        self.assertEquals(S(10, 82, None).choose_num_cols(), 1)
+        self.assertEquals(S(10, 82*2+1, None).choose_num_cols(), 2)
+        self.assertEquals(S(10, 82*2+1+40, None).choose_num_cols(), 2)
+
+    def test_checksum(self):
+        S = Screen
+        self.assertEquals(
+            S.checksum('159x48,0,0{79x48,0,0,79x48,80,0}'),
+            'bb62')
+        self.assertEquals(
+            S.checksum(
+                '178x51,0,0[178x25,0,0{89x25,0,0,26,88x25,90,0,27},'
+                '178x25,0,26,28]'),
+            'd5d2')
+
+
+if __name__ == "__main__":
+    unittest2.main(exit=False)
+    main()
