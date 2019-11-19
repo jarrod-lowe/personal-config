@@ -1,0 +1,9 @@
+[user]
+	email = github@rrod.net
+	name = Jarrod Lowe
+[color]
+	ui = auto
+[core]
+	excludesfile = /home/jarrod/.git-excludes
+[push]
+	default = current
