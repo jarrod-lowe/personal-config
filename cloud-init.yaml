@@ -1,0 +1,15 @@
+#cloud-config
+merge_how: 'dict(recurse_array,no_replace)+list(append)'
+system_info:
+  default_user:
+    name: jarrod
+timezone: Pacific/Auckland
+locale: en_NZ.UTF-8
+package_update: true
+package_upgrade: false
+packages:
+  - git
+runcmd:
+  - git clone https://github.com/jarrod-lowe/personal-config.git /home/jarrod/personal-config
+  - chown -R jarrod:jarrod /home/jarrod
+  - sudo -u jarrod /home/jarrod/personal-config/setup.sh
