@@ -119,7 +119,11 @@ fi
 
 
 # Customisations
-RCDIR="$( readlink -f ${HOME}/.bashrc )"
+if [ "$(uname)" = "Darwin" ] ; then
+  RCDIR="$( readlink ${HOME}/.bashrc )"
+else
+  RCDIR="$( readlink -f ${HOME}/.bashrc )"
+fi
 RCDIR="$( dirname "${RCDIR}" )"
 . ${RCDIR}/bashrc-additions.sh
 
