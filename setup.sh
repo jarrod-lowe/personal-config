@@ -16,7 +16,6 @@ ln -sf ${DEST}/tmux.conf .tmux.conf
 ln -sf ${DEST}/toprc .toprc
 if [ ! -d .config ] ; then mkdir .config ; fi
 ln -sf ${DEST}/fish .config/fish
-ln -sf ${DEST}/fish/functions/fish_prompt.fish .local/config/fish/
 
 if [ ! "${1-}" = "-n" ] ; then
   if [ "$(uname)" = "Darwin" ] ; then
@@ -48,5 +47,9 @@ if [ ! "${1-}" = "-n" ] ; then
       # Ubuntu!
       sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tmux git vim wget vim-syntastic fish
     fi
+
+    [ -d ${HOME}/.local/share/omf ] || curl -L https://get.oh-my.fish | fish
+    fish -c 'omf install bobthefish'
+    sudo chsh -s /usr/bin/fish ${USER}
   fi
 fi
