@@ -56,6 +56,7 @@ if [ ! "${1-}" = "-n" ] ; then
       chmod a+x /tmp/install-fish
       /tmp/install-fish --non-interactive
     )
+    fish -c 'set -U fish_user_paths /snap/bin $fish_user_paths'
     fish -c 'omf install bobthefish'
     sudo chsh -s /usr/bin/fish ${USER}
   fi
