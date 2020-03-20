@@ -5,6 +5,9 @@ fi
 
 DEST="$( dirname "$0" )"
 DEST="$( realpath "$DEST" )"
+cd $DEST
+git submodule init
+git submodule update
 cd $HOME
 ln -sf ${DEST}/bashrc .bashrc
 ln -sf ${DEST}/bashrc .profile
@@ -56,16 +59,6 @@ if [ ! "${1-}" = "-n" ] ; then
       sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
         tmux git vim wget vim-syntastic fish powerline
     fi
-
-    [ -d ${HOME}/.local/share/omf ] || (
-      # curl -L https://get.oh-my.fish | fish
-      curl -L github.com/oh-my-fish/oh-my-fish/raw/master/bin/install \
-        > /tmp/install-fish
-      chmod a+x /tmp/install-fish
-      /tmp/install-fish --noninteractive
-    )
-    fish -c 'set -U fish_user_paths /snap/bin $fish_user_paths'
-    fish -c 'omf install bobthefish'
     sudo chsh -s /usr/bin/fish ${USER}
   fi
 fi
