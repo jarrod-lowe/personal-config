@@ -57,7 +57,7 @@ if [ ! "${1-}" = "-n" ] ; then
     if [ -f /etc/debian_version ] ; then
       # Ubuntu!
       sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        tmux git vim wget vim-syntastic fish powerline
+        tmux git vim wget vim-syntastic fish powerline jq
     fi
     sudo chsh -s /usr/bin/fish ${USER}
   fi
