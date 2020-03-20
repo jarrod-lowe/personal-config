@@ -1,7 +1,7 @@
-for file in ~/.conf/fish/theme-bobthefish/functions/*.fish
+for file in ~/.config/fish/theme-bobthefish/functions/*.fish
   source $file
 end
-for file in ~/conf/fish/theme-bobthefish/*.fish
+for file in ~/config/fish/theme-bobthefish/*.fish
   source $file
 end
 
