@@ -62,7 +62,7 @@ if [ ! "${1-}" = "-n" ] ; then
       curl -L github.com/oh-my-fish/oh-my-fish/raw/master/bin/install \
         > /tmp/install-fish
       chmod a+x /tmp/install-fish
-      /tmp/install-fish --non-interactive
+      /tmp/install-fish --noninteractive
     )
     fish -c 'set -U fish_user_paths /snap/bin $fish_user_paths'
     fish -c 'omf install bobthefish'
