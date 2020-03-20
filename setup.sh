@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/bin/bash -eux
 if [ "$(uname)" = "Darwin" ] ; then
   [ -x /usr/local/bin/realpath ] || brew install coreutils
 fi
@@ -45,10 +45,17 @@ if [ ! "${1-}" = "-n" ] ; then
 
     if [ -f /etc/debian_version ] ; then
       # Ubuntu!
-      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tmux git vim wget vim-syntastic fish
+      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        tmux git vim wget vim-syntastic fish powerline
     fi
 
-    [ -d ${HOME}/.local/share/omf ] || curl -L https://get.oh-my.fish | fish
+    [ -d ${HOME}/.local/share/omf ] || (
+      # curl -L https://get.oh-my.fish | fish
+      curl -L github.com/oh-my-fish/oh-my-fish/raw/master/bin/install \
+        > /tmp/install-fish
+      chmod a+x /tmp/install-fish
+      /tmp/install-fish --non-interactive
+    )
     fish -c 'omf install bobthefish'
     sudo chsh -s /usr/bin/fish ${USER}
   fi
