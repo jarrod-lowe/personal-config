@@ -1,0 +1,3 @@
+[submodule "fish/theme-bobthefish"]
+	path = fish/theme-bobthefish
+	url = https://github.com/oh-my-fish/theme-bobthefish.git

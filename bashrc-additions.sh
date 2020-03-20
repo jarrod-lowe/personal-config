@@ -8,7 +8,11 @@ export HISTSIZE=10000
 export HISTTIMEFORMAT="%F-%T "
 export TZ=Pacific/Auckland
 
-RCDIR="$( readlink -f ${HOME}/.bashrc )"
+if [ "$(uname)" = "Darwin" ] ; then
+  RCDIR="$( readlink ${HOME}/.bashrc )"
+else
+  RCDIR="$( readlink -f ${HOME}/.bashrc )"
+fi
 RCDIR="$( dirname "${RCDIR}" )"
 . ${RCDIR}/bash_beeper.sh
 
