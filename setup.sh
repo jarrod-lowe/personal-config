@@ -16,6 +16,14 @@ ln -sf ${DEST}/tmux.conf .tmux.conf
 ln -sf ${DEST}/toprc .toprc
 if [ ! -d .config ] ; then mkdir .config ; fi
 ln -sf ${DEST}/fish .config/fish
+if [ ! -f .ssh/config ] ; then
+  # For safety reasons, don't overwrite any existing config
+  if [ ! -d .ssh ] ; then
+    mkdir -m 0700 .ssh
+    restorecon -R -v .ssh 2>/dev/null || true
+  fi
+  ln -s ${DEST}/ssh-config .ssh/config
+fi
 
 if [ ! "${1-}" = "-n" ] ; then
   if [ "$(uname)" = "Darwin" ] ; then
