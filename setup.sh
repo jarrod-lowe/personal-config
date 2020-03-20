@@ -33,8 +33,8 @@ if [ ! "${1-}" = "-n" ] ; then
     # Mac
     [ -x /usr/local/bin/tmux ] || brew install tmux
     [ -x /usr/local/bin/fish ] || brew install fish
-    [ -d ${HOME}/.local/share/omf ] || curl -L https://get.oh-my.fish | fish
-    fish -c 'omf install bobthefish'
+    # [ -d ${HOME}/.local/share/omf ] || curl -L https://get.oh-my.fish | fish
+    # fish -c 'omf install bobthefish'
     if [ ! -f ${HOME}/Library/Fonts/3270Medium.ttf ] ; then
       mkdir /tmp/$$
       cd /tmp/$$
