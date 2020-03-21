@@ -51,6 +51,7 @@ if [ ! "${1-}" = "-n" ] ; then
   else
     if [ -f /etc/redhat-release ] ; then
       # CentOS!
+      sudo yum-config-manager --add-repo https://download.opensuse.org/repositories/shells:/fish:/release:/3/RHEL_7/shells:fish:release:3.repo
       sudo yum install -y vim tmux git wget fish
     fi
 
